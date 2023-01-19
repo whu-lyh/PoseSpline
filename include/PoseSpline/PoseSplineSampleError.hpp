@@ -1,14 +1,17 @@
 #ifndef POSESPLINESAMPLEERROR_H
-#define  POSESPLINESAMPLEERROR_H
+#define POSESPLINESAMPLEERROR_H
 
-#include "PoseSpline/QuaternionSpline.hpp"
-#include <ceres/ceres.h>
+// STL
 #include <iostream>
+// ceres
+#include <ceres/ceres.h>
+// Local
+#include "PoseSpline/QuaternionSpline.hpp"
 #include "PoseSpline/QuaternionLocalParameter.hpp"
 #include "PoseSpline/ErrorInterface.hpp"
 #include "PoseSpline/Pose.hpp"
 
-
+// 
 class PoseSplineSampleError
     : public ceres::SizedCostFunction<6, 7, 7, 7, 7> {
 public:
@@ -27,11 +30,10 @@ public:
                                       double** jacobians,
                                       double** jacobiansMinimal) const;
 private:
-
     double t_meas_;
     Pose<double> T_Meas_;
     mutable information_t information_; ///< The information matrix for this error term.
     mutable information_t squareRootInformation_; ///< The square root information matrix for this error term.
 };
 
-#endif
+#endif // POSESPLINESAMPLEERROR_H

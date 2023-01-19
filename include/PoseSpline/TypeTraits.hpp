@@ -1,8 +1,12 @@
 #ifndef _TYPE_TRAITS_H_
 #define _TYPE_TRAITS_H_
 
+// Eigen
 #include <Eigen/Core>
+// Local
 #include "Pose.hpp"
+
+// forward declearation for speeding the compiling
 template <typename T>
 class TypeTraits;
 
@@ -16,7 +20,6 @@ public:
     }
 };
 
-
 template <>
 class TypeTraits<Pose<double>> {
 public:
@@ -26,7 +29,6 @@ public:
         return Pose<double>();
     }
 };
-
 
 template <int D>
 class TypeTraits<Eigen::Matrix<double, D,1>> {
@@ -38,5 +40,4 @@ public:
     }
 };
 
-
-#endif
+#endif // _TYPE_TRAITS_H_

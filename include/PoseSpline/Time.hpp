@@ -50,10 +50,6 @@
 #ifndef UTILITY_TIME_HPP_
 #define UTILITY_TIME_HPP_
 
-/*********************************************************************
- ** Pragmas
- *********************************************************************/
-
 #ifdef _MSC_VER
 // Okvistime has some magic interface that doesn't directly include
 // its implementation, this just disables those warnings.
@@ -65,25 +61,16 @@
 #include <windows.h>
 #endif
 
-/*********************************************************************
- ** Headers
- *********************************************************************/
-
 #include <iostream>
 #include <cmath>
 #include <chrono>
 #include "Duration.hpp"
-
-/*********************************************************************
- ** Cross Platform Headers
- *********************************************************************/
-
+// Cross Platform Headers
 #ifdef WIN32
 #include <sys/timeb.h>
 #else
 #include <sys/time.h>
 #endif
-
 
 /*********************************************************************
  ** Exceptions
@@ -150,21 +137,17 @@ public:
     bool operator<(const T &rhs) const;
     bool operator>=(const T &rhs) const;
     bool operator<=(const T &rhs) const;
-
     double toSec() const {
         return (double) sec + 1e-9 * (double) nsec;
-    }
-    ;
+    }  
     T& fromSec(double t) {
         sec = (uint32_t) floor(t);
         nsec = (uint32_t) std::round((t - sec) * 1e9);
         return *static_cast<T*>(this);
     }
-
     uint64_t toNSec() const {
         return (uint64_t) sec * 1000000000ull + (uint64_t) nsec;
     }
-
     uint64_t toMicroSec() const {
         return (uint64_t) sec * 1000000ull + (uint64_t) std::floor((double)nsec * 1e-3);
     }
@@ -175,9 +158,7 @@ public:
         return sec == 0 && nsec == 0;
     }
     inline bool is_zero() const {
-        return isZero();
-    }
-
+        return isZero(); 
 };
 
 /**
@@ -190,20 +171,15 @@ public:
     Time()
             : TimeBase<Time, Duration>() {
     }
-
     Time(uint32_t _sec, uint32_t _nsec)
             : TimeBase<Time, Duration>(_sec, _nsec) {
     }
-
     explicit Time(double t) {
         fromSec(t);
     }
-
     explicit Time(uint64_t t) {
         fromNSec(t);
     }
-
-
     /**
      * \brief Retrieve the current time.  Returns the current wall clock time.
      */
@@ -212,14 +188,12 @@ public:
      * \brief Sleep until a specific time has been reached.
      */
     static bool sleepUntil(const Time& end);
-
     static void init();
     static void shutdown();
     static void setNow(const Time& new_now);
     static bool useSystemTime();
     static bool isSimTime();
     static bool isSystemTime();
-
     /**
      * \brief Returns whether or not the current time is valid.  Time is valid if it is non-zero.
      */
@@ -247,25 +221,20 @@ public:
     WallTime()
             : TimeBase<WallTime, WallDuration>() {
     }
-
     WallTime(uint32_t _sec, uint32_t _nsec)
             : TimeBase<WallTime, WallDuration>(_sec, _nsec) {
     }
-
     explicit WallTime(double t) {
         fromSec(t);
     }
-
     /**
      * \brief Returns the current wall clock time.
      */
     static WallTime now();
-
     /**
      * \brief Sleep until a specific time has been reached.
      */
     static bool sleepUntil(const WallTime& end);
-
     static bool isSystemTime() {
         return true;
     }

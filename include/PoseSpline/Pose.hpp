@@ -1,5 +1,7 @@
 #ifndef POSE_H
 #define POSE_H
+
+// Local
 #include "Quaternion.hpp"
 /*********************************************************************************
  *  OKVIS - Open Keyframe-based Visual-Inertial SLAM
@@ -45,9 +47,6 @@
  * @author Modified by Pang Fumin  on Sept 25, 2017
  */
 
-
-
-
 /// \brief Implements sin(x)/x for all x in R.
 /// @param[in] x The argument of the sinc function.
 /// \return The result.
@@ -66,8 +65,8 @@ Eigen::Matrix<T,3,3> rightJacobian(const  Eigen::Matrix<T,3,1> & PhiVec);
 
 /// \brief A class that does homogeneous transformations.
 /// This relates a frame A and B: T_AB; it consists of
-///   translation r_AB (represented in frame A) and
-///   Quaternion q_AB (as an Eigen Quaternion).
+///   translation(xyz) r_AB (represented in frame A) and
+///   Quaternion(xyzw) q_AB (as an Eigen Quaternion).
 /// see also the RSS'13 / IJRR'14 paper or the Thesis.
 /// Follows some of the functionality of the SchweizerMesser library by Paul Furgale,
 /// but uses Eigen quaternions underneath.
@@ -248,6 +247,7 @@ protected:
     Eigen::Matrix<T,3,3> C_; ///< The cached DCM C_{AB}.
 };
 
+// for template function realization
 #include "Pose_imp.hpp"
 
-#endif
+#endif // POSE_H

@@ -1,9 +1,12 @@
 #ifndef VECTORSPLINESAMPLEERROR_H
-#define  VECTORSPLINESAMPLEERROR_H
+#define VECTORSPLINESAMPLEERROR_H
 
-#include "PoseSpline/QuaternionSpline.hpp"
-#include <ceres/ceres.h>
+// STL
 #include <iostream>
+// ceres
+#include <ceres/ceres.h>
+// Local
+#include "PoseSpline/QuaternionSpline.hpp"
 #include "PoseSpline/QuaternionLocalParameter.hpp"
 #include "PoseSpline/ErrorInterface.hpp"
 #include "PoseSpline/QuaternionSplineUtility.hpp"
@@ -124,7 +127,6 @@ public:
 
 
 private:
-
     double t_meas_;
     Eigen::Matrix<double, Dim, 1> V_Meas_;
 };

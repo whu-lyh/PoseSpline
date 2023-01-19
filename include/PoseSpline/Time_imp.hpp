@@ -49,26 +49,21 @@
 
 #ifndef UTILITY_TIME_IMP_HPP_
 #define UTILITY_TIME_IMP_HPP_
-
-/*********************************************************************
- ** Headers
- *********************************************************************/
-
+// STL
 #include <iostream>
 #include <cmath>
-
-/*********************************************************************
- ** Cross Platform Headers
- *********************************************************************/
+// Cross Platform Headers
+#ifdef WIN32
+#include <sys/timeb.h>
+#else
 #include <sys/time.h>
+#endif
 
 template <class T, class D>
 T& TimeBase<T, D>::fromNSec(uint64_t t) {
   sec = (int32_t)(t / 1000000000);
   nsec = (int32_t)(t % 1000000000);
-
-//  normalizeSecNSec(sec, nsec);
-
+  // normalizeSecNSec(sec, nsec);
   return *static_cast<T*>(this);
 }
 
@@ -88,10 +83,8 @@ template <class T, class D>
 T TimeBase<T, D>::operator+(const D& rhs) const {
   int64_t sec_sum = (int64_t)sec + (int64_t)rhs.sec;
   int64_t nsec_sum = (int64_t)nsec + (int64_t)rhs.nsec;
-
   // Throws an exception if we go out of 32-bit range
   normalizeSecNSecUnsigned(sec_sum, nsec_sum);
-
   // now, it's safe to downcast back to uint32 bits
   return T((uint32_t)sec_sum, (uint32_t)nsec_sum);
 }

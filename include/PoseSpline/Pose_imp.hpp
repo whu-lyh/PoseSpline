@@ -35,13 +35,11 @@
  * @file kinematics/Transformation.hpp
  * @brief Header file for the Transformation class.
  * @author Stefan Leutenegger
- */
-
-/**
  * @file Pose.hpp
  * @brief Header file for the Pose class.
  * @author Modified By Pang Fumin
  */
+
 template <typename T>
 __inline__ T sinc(T x) {
     if (fabs(x) > 1e-6) {
@@ -56,6 +54,7 @@ __inline__ T sinc(T x) {
         return T(1.0) - c_2 * x_2 + c_4 * x_4 - c_6 * x_6;
     }
 }
+
 template <typename T>
 __inline__ Eigen::Matrix<T,4,1> deltaQ(const Eigen::Matrix<T,3,1>& dAlpha)
 {
@@ -89,15 +88,14 @@ inline Pose<T>::Pose(const Pose & other)
           r_(&parameters_[0]),
           q_(&parameters_[3]),
           C_(other.C_) {
-
 }
+
 template <typename T>
 inline Pose<T>::Pose(Pose && other)
         : parameters_(std::move(other.parameters_)),
           r_(&parameters_[0]),
           q_(&parameters_[3]),
           C_(std::move(other.C_)) {
-
 }
 
 template <typename T>
@@ -118,6 +116,7 @@ inline Pose<T>::Pose(const Eigen::Matrix<T,3,1> & r_AB,
     q_ = q_AB.normalized();
     updateC();
 }
+
 template <typename T>
 inline Pose<T>::Pose(const Eigen::Matrix<T,3,1> & r_AB, const Eigen::Quaternion<T>& q_AB) 
         : r_(&parameters_[0]),
@@ -134,8 +133,8 @@ inline Pose<T>::Pose(const Eigen::Matrix<T,7,1>& vec): r_(&parameters_[0]),
     q_ = vec.template tail<4>();
     q_ = quatNorm<T>(q_);
     updateC();
-
 }
+
 template <typename T>
 inline Pose<T>::Pose(const T* array_ptr): r_(&parameters_[0]),
                                                        q_(&parameters_[3]) {
@@ -145,6 +144,7 @@ inline Pose<T>::Pose(const T* array_ptr): r_(&parameters_[0]),
     updateC();
 
 }
+
 template <typename T>
 inline Pose<T>::Pose(const Eigen::Matrix<T,4,4> & T_AB)
         : r_(&parameters_[0]),
@@ -157,10 +157,11 @@ inline Pose<T>::Pose(const Eigen::Matrix<T,4,4> & T_AB)
 //    assert(fabs(T_AB(3, 2)) < 1.0e-12);
 //    assert(fabs(T_AB(3, 3) - 1.0) < 1.0e-12);
 }
+
 template <typename T>
 inline Pose<T>::~Pose() {
-
 }
+
 template<typename T>
 template<typename Derived_coeffs>
 inline bool Pose<T>::setCoeffs(
@@ -193,6 +194,7 @@ template <typename T>
 inline const Eigen::Map<Eigen::Matrix<T,3,1>> & Pose<T>::r() const {
     return r_;
 }
+
 template <typename T>
 inline const Eigen::Map<Eigen::Matrix<T,4,1>> & Pose<T>::q() const {
     return q_;
@@ -205,6 +207,7 @@ inline Eigen::Matrix<T, 3, 4> Pose<T>::T3x4() const {
     T3x4_ret.template topRightCorner<3, 1>() = r_;
     return T3x4_ret;
 }
+
 // Return a copy of the transformation inverted.
 template <typename T>
 inline Pose<T> Pose<T>::inverse() const {
@@ -216,6 +219,7 @@ template <typename T>
 inline void Pose<T>::setRandom() {
     setRandom(T(1.0), T(M_PI));
 }
+
 // Set this to a random transformation with bounded rotation and translation.
 template <typename T>
 inline void Pose<T>::setRandom(T translationMaxMeters,
@@ -236,15 +240,15 @@ inline void Pose<T>::set(const Eigen::Matrix<T,4,4> & T_AB) {
     C_ = (T_AB.template topLeftCorner<3, 3>());
     q_ = rotMatToQuat(C_);
 }
-template <typename T>
 
+template <typename T>
 inline void Pose<T>::set(const Eigen::Matrix<T,3,1> & r_AB,
                                 const Eigen::Matrix<T,4,1>& q_AB) {
     r_ = r_AB;
     q_ = quatNorm<T>(q_AB);
-
     updateC();
 }
+
 // Set this transformation to identity
 template <typename T>
 inline void Pose<T>::setIdentity() {
@@ -264,11 +268,13 @@ inline Pose<T> Pose<T>::operator*(
         const Pose & rhs) const {
     return Pose(C_ * rhs.r_ + r_, quatLeftComp<T>(q_) * rhs.q_);
 }
+
 template <typename T>
 inline Eigen::Matrix<T,3,1> Pose<T>::operator*(
         const Eigen::Matrix<T,3,1> & rhs) const {
     return C_ * rhs + r_;
 }
+
 template <typename T>
 inline Eigen::Matrix<T,4,1> Pose<T>::operator*(
         const Eigen::Matrix<T,4,1> & rhs) const {
@@ -288,18 +294,16 @@ inline Pose<T>& Pose<T>::operator=(const Pose<T> & rhs) {
     return *this;
 }
 
-
 template <typename T>
 inline void Pose<T>::updateC() {
     C_ = quatToRotMat<T>(q_);
 }
 
-
-// apply small update:
+// apply small update: same as okvis
+// more details in https://fzheng.me/2018/01/23/okvis-transformation/
 template <typename T>
 template<typename Derived_delta>
-inline bool Pose<T>::oplus(
-        const Eigen::MatrixBase<Derived_delta> & delta) {
+inline bool Pose<T>::oplus(const Eigen::MatrixBase<Derived_delta> & delta) {
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived_delta, 6);
     r_ += delta.template head<3>();
     Eigen::Matrix<T,4,1> dq;
@@ -314,8 +318,7 @@ inline bool Pose<T>::oplus(
 
 template <typename T>
 template<typename Derived_delta, typename Derived_jacobian>
-inline bool Pose<T>::oplus(
-        const Eigen::MatrixBase<Derived_delta> & delta,
+inline bool Pose<T>::oplus(const Eigen::MatrixBase<Derived_delta> & delta,
         const Eigen::MatrixBase<Derived_jacobian> & jacobian) {
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived_delta, 6);
     EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Derived_jacobian, 7, 6);
@@ -356,13 +359,13 @@ inline bool Pose<T>::liftJacobian(const Eigen::MatrixBase<Derived_jacobian> & ja
             = 2*quatRightComp<T>(quatInv<T>(q_)).template topLeftCorner<3,4>();
     return true;
 }
+
 template <typename T>
 inline  Eigen::Matrix<T,4,1> Pose<T>::rotation() const {
     return q_;
 }
-template <typename T>
 
+template <typename T>
 inline  Eigen::Matrix<T,3,1> Pose<T>::translation() const {
     return r_;
 }
-

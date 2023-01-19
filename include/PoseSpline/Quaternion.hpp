@@ -1,28 +1,25 @@
 #ifndef QUATERNION_H
 #define QUATERNION_H
-
-
+// STL
 #include <map>
 #include <iostream>
+// Eigen
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
+
 /*
  * R.f.:
  * [1] Pose estimation using linearized rotations and quaternion algebra.
  * [2] Indirect Kalman filter for 3D attitude estimation.
- *
  */
-
-typedef  Eigen::Matrix<double,4,1> Quaternion;
+typedef Eigen::Matrix<double,4,1> Quaternion;
 template <typename T>
 using QuaternionTemplate = Eigen::Matrix<T,4,1>;
-typedef  Quaternion* QuatPtr;
-typedef  Eigen::Map<Quaternion> QuaternionMap;
-typedef  Eigen::Matrix<double,3,3> RotMat;
-typedef  double real_t;
-
-
+typedef Quaternion* QuatPtr;
+typedef Eigen::Map<Quaternion> QuaternionMap;
+typedef Eigen::Matrix<double,3,3> RotMat;
+typedef double real_t;
 
 template<typename T>
 Eigen::Matrix<T,4,1> unitQuat(){
@@ -45,20 +42,17 @@ inline Eigen::Matrix<T,3,3> crossMat(const Eigen::Matrix<T,3,1>& vec)
                                     -vec[1], vec[0],  T(0)).finished();
 }
 
-
 template<typename T>
 bool isLessThenEpsilons4thRoot(T x){
     static const T epsilon4thRoot = pow(std::numeric_limits<T>::epsilon(), T(1.0/4.0));
     return x < epsilon4thRoot;
 }
 
-
+// Method of implementing this function that is accurate to numerical precision from
+// Grassia, F. S. (1998). Practical parameterization of rotations using the exponential map.
+// journal of graphics, gpu, and game tools, 3(3):29–48.
 template<typename T>
 Eigen::Matrix<T,4,1> quatExp(const Eigen::Matrix<T,3,1>& dx) {
-    // Method of implementing this function that is accurate to numerical precision from
-    // Grassia, F. S. (1998). Practical parameterization of rotations using the exponential map.
-    // journal of graphics, gpu, and game tools, 3(3):29–48.
-
     T theta = dx.norm();
     // na is 1/theta sin(theta/2)
     T na;
@@ -80,6 +74,7 @@ T fabsT(const T scale){
     if( scale > T(0)) return scale;
     else return -scale;
 }
+
 template<typename T>
 T arcSinXOverX(T x) {
     if(isLessThenEpsilons4thRoot(fabsT(x))){
@@ -88,12 +83,8 @@ T arcSinXOverX(T x) {
     return asin(x) / x;
 }
 
-
-
 template<typename T>
 Eigen::Matrix<T,3,1> quatLog(Eigen::Matrix<T,4,1> & q){
-
-
     const Eigen::Matrix<T, 3, 1> a = q.head(3);
     const T na = a.norm();
     const T eta = q[3];
@@ -150,13 +141,11 @@ Eigen::Matrix<T,3,3> quatL(Eigen::Matrix<T,4,1> &q){
         T nphi = phi.norm();
         Eigen::Matrix<T,3,1> a = phi/nphi;
         Eigen::Matrix<T,3,3> squareA= crossMat(a)*crossMat(a);
-
-
-        Jac_log = I + T(0.5)*crossMat<T>(phi)
-                  + (T(1) - nphi/(T(2)*tan(T(0.5)*nphi)))*squareA;
+        Jac_log = I + T(0.5)*crossMat<T>(phi) + (T(1) - nphi/(T(2)*tan(T(0.5)*nphi)))*squareA;
         return Jac_log;
     }
 }
+
 template<typename T>
 Eigen::Matrix<T,3,3> quatS(Eigen::Matrix<T,3,1> &phi){
     Eigen::Matrix<T,3,3> Jac_exp;
@@ -173,10 +162,10 @@ Eigen::Matrix<T,3,3> quatS(Eigen::Matrix<T,3,1> &phi){
         Jac_exp = I - T(2.0)/nphi*squareSin*crossMat(a)
                   + (T(1) - T(1.0)/(nphi)*sin(nphi))*squareA;
         return Jac_exp;
-
     }
 }
 
+// order: ZYX: quaternion: xyzw
 template<typename T>
 Eigen::Matrix<T,4,1> QuatFromEuler(T* euler)
 {
@@ -187,8 +176,6 @@ Eigen::Matrix<T,4,1> QuatFromEuler(T* euler)
     T sr2 = sin(euler[0]*T(0.5));
     T sp2 = sin(euler[1]*T(0.5));
     T sy2 = sin(euler[2]*T(0.5));
-
-
     quat[0] = sr2*cp2*cy2 - cr2*sp2*sy2;
     quat[1] = cr2*sp2*cy2 + sr2*cp2*sy2;
     quat[2] = cr2*cp2*sy2 - sr2*sp2*cy2;
@@ -196,34 +183,26 @@ Eigen::Matrix<T,4,1> QuatFromEuler(T* euler)
     return quat;
 }
 
-
 template<typename T>
-Eigen::Matrix<T,4,1> deltaQuat( Eigen::Matrix<T,3,1> &deltaTheta )
+Eigen::Matrix<T,4,1> deltaQuat(Eigen::Matrix<T,3,1> &deltaTheta)
 {
     Eigen::Matrix<T,4,1>  r;
     Eigen::Matrix<T,3,1> deltaq = T(0.5) * deltaTheta;
-
     r.head(3) = deltaq;
     r(3) = T(1.0);
-
     return r;
 }
-
 
 template<typename T>
 Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>
 null(const Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>& A)
 {
     int r = 0;
-    Eigen::JacobiSVD<Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>>
-            svd(A.transpose(), Eigen::ComputeFullV);
-
+    Eigen::JacobiSVD<Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>> svd(A.transpose(), Eigen::ComputeFullV);
     /* Get the V matrix */
-    Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>
-            V((int)svd.matrixV().rows(), (int)svd.matrixV().cols());
+    Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> V((int)svd.matrixV().rows(), (int)svd.matrixV().cols());
     V = svd.matrixV();
     Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> S = svd.singularValues();
-
     T tol = std::max(A.rows(), A.cols()) * S.maxCoeff() * T(2.2204e-016);
     for (int i = 0; i < S.size(); i++)
     {
@@ -237,28 +216,26 @@ null(const Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>& A)
     return Z;
 }
 
-
+// quaternion inverse operation
 template<typename T>
 Eigen::Matrix<T,4,1> quatInv(const Eigen::Matrix<T,4,1> q)
 {
-    //assert( abs( q.norm() - 1.0) <= std::numeric_limits<double>::epsilon() );
+    //assert(abs( q.norm() - 1.0) <= std::numeric_limits<double>::epsilon());
     Eigen::Matrix<T,4,1> qinv =  q/q.norm();
     qinv(0,0) = -qinv(0,0);
     qinv(1,0) = -qinv(1,0);
     qinv(2,0) = -qinv(2,0);
     qinv(3,0) = qinv(3,0);
-
     return qinv;
 }
 
 template<typename T>
-inline Eigen::Matrix<T,4,1> quatNorm( Eigen::Matrix<T,4,1> q){
+inline Eigen::Matrix<T,4,1> quatNorm(Eigen::Matrix<T,4,1> q){
     return q/q.norm();
 }
 
-
 template<typename T>
-inline Eigen::Matrix<T,4,4> quatLeftComp( const Eigen::Matrix<T,4,1> q )
+inline Eigen::Matrix<T,4,4> quatLeftComp(const Eigen::Matrix<T,4,1> q)
 {
     // [  q3,  q2, -q1, q0]
     // [ -q2,  q3,  q0, q1]
@@ -269,31 +246,27 @@ inline Eigen::Matrix<T,4,4> quatLeftComp( const Eigen::Matrix<T,4,1> q )
     Q(1,0) = -q[2]; Q(1,1) =  q[3]; Q(1,2) =  q[0]; Q(1,3) =  q[1];
     Q(2,0) =  q[1]; Q(2,1) = -q[0]; Q(2,2) =  q[3]; Q(2,3) =  q[2];
     Q(3,0) = -q[0]; Q(3,1) = -q[1]; Q(3,2) = -q[2]; Q(3,3) =  q[3];
-
     return Q;
 }
 
 template<typename T>
-inline Eigen::Matrix<T,4,4> quatRightComp( const Eigen::Matrix<T,4,1> q )
+inline Eigen::Matrix<T,4,4> quatRightComp(const Eigen::Matrix<T,4,1> q)
 {
     // [  q3, -q2,  q1, q0]
     // [  q2,  q3, -q0, q1]
     // [ -q1,  q0,  q3, q2]
     // [ -q0, -q1, -q2, q3]
-
     Eigen::Matrix<T,4,4> Q;
     Q(0,0) =  q[3]; Q(0,1) = -q[2]; Q(0,2) =  q[1]; Q(0,3) =  q[0];
     Q(1,0) =  q[2]; Q(1,1) =  q[3]; Q(1,2) = -q[0]; Q(1,3) =  q[1];
     Q(2,0) = -q[1]; Q(2,1) =  q[0]; Q(2,2) =  q[3]; Q(2,3) =  q[2];
     Q(3,0) = -q[0]; Q(3,1) = -q[1]; Q(3,2) = -q[2]; Q(3,3) =  q[3];
-
     return Q;
 }
 
-
-
+// quaternion multiplication
 template<typename T>
-Eigen::Matrix<T,4,1> quatMult( const Eigen::Matrix<T,4,1> q,const Eigen::Matrix<T,4,1> p)
+Eigen::Matrix<T,4,1> quatMult(const Eigen::Matrix<T,4,1> q,const Eigen::Matrix<T,4,1> p)
 {
     Eigen::Matrix<T,4,1> qplus_p;
     // p0*q3 + p1*q2 - p2*q1 + p3*q0
@@ -304,56 +277,42 @@ Eigen::Matrix<T,4,1> quatMult( const Eigen::Matrix<T,4,1> q,const Eigen::Matrix<
     qplus_p[2] = p[0]*q[1] - p[1]*q[0] + p[2]*q[3] + p[3]*q[2];
     // p3*q3 - p1*q1 - p2*q2 - p0*q0
     qplus_p[3] = p[3]*q[3] - p[1]*q[1] - p[2]*q[2] - p[0]*q[0];
-
     if (qplus_p(3) < static_cast<T>(0.)) {
         qplus_p = -qplus_p;
-    }
-
-
-    
+    }    
     return qplus_p;
 }
 
-
 template<typename T>
-Eigen::Matrix<T,3,3> renormalizeRotMat( Eigen::Matrix<T,3,3> &m )
+Eigen::Matrix<T,3,3> renormalizeRotMat(Eigen::Matrix<T,3,3> &m)
 {
-    Eigen::JacobiSVD<Eigen::Matrix<T,3,3> > jsvd(m, Eigen::ComputeFullU | Eigen::ComputeFullV );
-
+    Eigen::JacobiSVD<Eigen::Matrix<T,3,3> > jsvd(m, Eigen::ComputeFullU | Eigen::ComputeFullV);
     Eigen::Matrix<T,3,3> VT = jsvd.matrixV().transpose();
-
     return jsvd.matrixU() * Eigen::Matrix<T,3,3>::Identity() * VT;
 }
 
 template<typename T>
-Eigen::Matrix<T,3,3> quatToRotMat( Eigen::Matrix<T,4,1> q )
+Eigen::Matrix<T,3,3> quatToRotMat(Eigen::Matrix<T,4,1> q)
 {
     // https://github.com/ethz-asl/maplab/blob/master/common/maplab-common/include/maplab-common/quaternion-math-inl.h
     q = q / q.norm();
-
     T one = static_cast<T>(1.0);
     T two = static_cast<T>(2.0);
     Eigen::Matrix<T,3,3> rot_matrix;
-
     (rot_matrix)(0, 0) = one - two * (q(1) * q(1) + q(2) * q(2));
     (rot_matrix)(0, 1) = two * (q(0) * q(1) + q(2) * q(3));
     (rot_matrix)(0, 2) = two * (q(0) * q(2) - q(1) * q(3));
-
     (rot_matrix)(1, 0) = two * (q(0) * q(1) - q(2) * q(3));
     (rot_matrix)(1, 1) = one - two * (q(0) * q(0) + q(2) * q(2));
     (rot_matrix)(1, 2) = two * (q(1) * q(2) + q(0) * q(3));
-
     (rot_matrix)(2, 0) = two * (q(0) * q(2) + q(1) * q(3));
     (rot_matrix)(2, 1) = two * (q(1) * q(2) - q(0) * q(3));
     (rot_matrix)(2, 2) = one - two * (q(0) * q(0) + q(1) * q(1));
-
     return rot_matrix;
 }
 
-
-
 template<typename T>
-Eigen::Matrix<T,4,1> rotMatToQuat( Eigen::Matrix<T,3,3> &R )
+Eigen::Matrix<T,4,1> rotMatToQuat(Eigen::Matrix<T,3,3> &R)
 {
     Eigen::Matrix<T,4,1> q;
     Eigen::Matrix<T,3,3> R_T = R.transpose();
@@ -392,16 +351,12 @@ Eigen::Matrix<T,4,1> rotMatToQuat( Eigen::Matrix<T,3,3> &R )
         x = ( Rzx + Rxz ) / (T(4.0)*z);
         y = ( Ryz + Rzy ) / (T(4.0)*z);
     }
-
     q(0) = x;
     q(1) = y;
     q(2) = z;
     q(3) = w;
-
     return q;
 }
-
-
 
 template<typename T>
 Eigen::Matrix<T,3,3> axisAngleToRotMat(Eigen::Matrix<T,3,1> aa){
@@ -410,28 +365,21 @@ Eigen::Matrix<T,3,3> axisAngleToRotMat(Eigen::Matrix<T,3,1> aa){
     Eigen::Matrix<T,3,3> I;
     I.setIdentity();
     T cos_phi = cos(phi);
-
     return cos_phi*I + (1 - cos_phi)*a*a.transpose() - sin(phi)*crossMat<T>(a);
-
 }
 
 template<typename T>
 Eigen::Matrix<T,4,1> randomQuat() {
     // Create a random unit-length axis.
     Eigen::Matrix<T, 3, 1> axis = T(M_PI) * Eigen::Matrix<T, 3, 1>::Random();
-
-    Eigen::Matrix<T,3,3> C_
-            = Eigen::AngleAxis<T>(axis.norm(), axis.normalized()).toRotationMatrix();
+    Eigen::Matrix<T,3,3> C_ = Eigen::AngleAxis<T>(axis.norm(), axis.normalized()).toRotationMatrix();
     Eigen::Matrix<T,4,1> q_ = rotMatToQuat<T>(C_);
     return q_;
 }
 
-
-
 /*
  * From Barfoot's book.
  */
-
 
 template<typename T>
 Eigen::Matrix<T,3,3> rotX(T x){
@@ -442,7 +390,6 @@ Eigen::Matrix<T,3,3> rotX(T x){
     return Rx;
 }
 
-
 template<typename T>
 Eigen::Matrix<T,3,3> rotY(T y){
     Eigen::Matrix<T,3,3> Ry ;
@@ -450,9 +397,7 @@ Eigen::Matrix<T,3,3> rotY(T y){
             T(0),   T(1),         T(0),
             sin(y),  T(0),    cos(y);
     return Ry;
-
 }
-
 
 template<typename T>
 Eigen::Matrix<T,3,3> rotZ(double z){
@@ -461,14 +406,11 @@ Eigen::Matrix<T,3,3> rotZ(double z){
             -sin(z),cos(z),T(0),
             T(0),     T(0),   T(1);
     return Rz;
-
 }
 
 /*
  * Kinematics
  */
-
-
 template<typename T>
 Eigen::Matrix<T,4,4> OmegaMat(const Eigen::Matrix<T,3,1>& vec){
     return (Eigen::Matrix<T,4,4>()<< 0, vec[2], -vec[1], vec[0],
@@ -477,13 +419,11 @@ Eigen::Matrix<T,4,4> OmegaMat(const Eigen::Matrix<T,3,1>& vec){
             -vec[0], -vec[1], -vec[2], 0).finished();
 };
 
-
 template<typename  T>
 inline Eigen::Matrix<T,3,1> errorRotationPropagate(Eigen::Matrix<T,3,1>& omega,
                                             Eigen::Matrix<T,3,1>& deltaTheta0 ){
    return (Eigen::Matrix<T,3,3>::setIdentity() - crossMat(omega))*deltaTheta0;
 };
-
 
 /*
  * q2 = Exp(omega*dt)*q1
@@ -496,4 +436,4 @@ Eigen::Matrix<T,3,1> getOmegaFromTwoQuaternion(const Eigen::Matrix<T,4,1>& q1,
     return   quatLog<T>(temp)/dt;
 };
 
-#endif
+#endif // QUATERNION_H

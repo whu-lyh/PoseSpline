@@ -44,6 +44,7 @@
 /// \brief okvis Main namespace of this package.
 namespace okvis {
 /// \brief ceres Namespace for ceres-related functionality implemented in okvis.
+/// more Chinese note in https://fzheng.me/2018/01/23/okvis-transformation/
     namespace ceres {
 
 /// \brief Pose local parameterisation, i.e. for orientation dq(dalpha) x q_bar.

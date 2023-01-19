@@ -11,8 +11,6 @@ LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
 
-
-
 cs_add_library(${PROJECT_NAME}
         src/extern/spline_projection_error_simple.cpp
         src/extern/spline_projection_error.cpp
@@ -44,11 +42,7 @@ cs_add_library(${PROJECT_NAME}
 #        src/PoseSpline/AngularVelocitySampleError.cpp
         )
 
-
-
-
 ## Test
-
 if(CATKIN_ENABLE_TESTING)
     catkin_add_gtest(geometry_tests
             test/test_main.cpp
@@ -78,10 +72,7 @@ if(CATKIN_ENABLE_TESTING)
     if(TARGET spline_tests)
         target_link_libraries(spline_tests ${PROJECT_NAME} -lpthread -lm)
     endif()
-
-
 endif()
-
 
 add_executable(test_simulate_spline_project test/test_simulate_spline_project.cpp)
 target_link_libraries(test_simulate_spline_project ${PROJECT_NAME} -lpthread -lm)
@@ -101,9 +92,9 @@ target_link_libraries(test_dynamic_spline_imu_factor ${PROJECT_NAME}  -lpthread 
 add_executable(test_JPL_imu_factor test/test_JPL_imu_factor.cpp)
 target_link_libraries(test_JPL_imu_factor ${PROJECT_NAME}  -lpthread -lm)
 
-
 add_executable(testPoseSplineSampleTemporalError test/testPoseSplineSampleTemporalError.cpp)
 target_link_libraries(testPoseSplineSampleTemporalError ${PROJECT_NAME}  -lpthread -lm)
+
 add_executable(testPoseSplineSampleError test/testPoseSplineSampleError.cpp)
 target_link_libraries(testPoseSplineSampleError ${PROJECT_NAME}  -lpthread -lm)
 

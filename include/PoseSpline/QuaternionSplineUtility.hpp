@@ -1,29 +1,29 @@
 #ifndef QUATERNIONSPLINEUTILITY_H
 #define QUATERNIONSPLINEUTILITY_H
 
-
+// Local
 #include "Quaternion.hpp"
 
-typedef  Eigen::Matrix3d Jacobian_Quat;
-
+typedef Eigen::Matrix3d Jacobian_Quat;
 
 /*
  * Continuous-Time Estimation of attitude
  * using B-splines on Lie groups
  */
 
-
 class QSUtility{
 
 public:
-
     template<typename T>
-    static Eigen::Matrix<T, 3, 1> Phi(const Eigen::Matrix<T,4,1> & Q_k_1, const Eigen::Matrix<T,4,1> &Q_k) {
+    static Eigen::Matrix<T, 3, 1> Phi(const Eigen::Matrix<T,4,1> & Q_k_1, 
+                                    const Eigen::Matrix<T,4,1> &Q_k) {
+        // get quaternion inverse of Q_k_1
         Eigen::Matrix<T,4,1> invQ_k_1 = quatInv(Q_k_1);
-        Eigen::Matrix<T,4,1> tmp  = quatMult(invQ_k_1,Q_k);
+        // quaternion multiplication of invQ_k_1 and Q_k
+        Eigen::Matrix<T,4,1> tmp = quatMult(invQ_k_1,Q_k);
+        // anti exp
         return quatLog(tmp);
     }
-
 
     template<typename T>
     static Eigen::Matrix<T, 4, 1> r(const T beta_t,const Eigen::Matrix<T,3,1> Phi) {
@@ -31,8 +31,6 @@ public:
     }
     static std::pair<Jacobian_Quat,Jacobian_Quat>
                     Jcobian_Phi_Quat(Quaternion &q_k_1, Quaternion &q_k);
-
-
     /*
      *  bpline basis fuctions
      */
@@ -89,24 +87,21 @@ public:
         return  cubicBasisFun3(u);
     }
 
-
     // An anternative matrix form
     // A Spline-Based Trajectory Representation for Sensor Fusion
     // and Rolling Shutter Cameras
     // But in form: beta = C*[1 u u^2 u^3]^T
     template<typename T >
     static Eigen::Matrix<T,4,4> C(){
-
         Eigen::Matrix<T,4,4> res;
         res <<  T(6),T(5),T(1),T(0),
                 T(0),T(3),T(3),T(0),
                 T(0),T(-3),T(3),T(0),
                 T(0),T(1),T(-2),T(1);
         res = T(1.0/6.0)*res;
-
-
         return res;
     }
+
     /*
      * First order derivation of basis Cumulative functions
      * Here, we take dt into consideration.
@@ -115,21 +110,18 @@ public:
     //TODO: simplify
     template<typename T >
     static T dot_beta1(const T dt, const T u){
-
         Eigen::Matrix<T,4,1> uu(T(0.0), T(1), T(2)*u ,T(3)*u*u);
         return T(T(1)/dt)*uu.transpose()*C<T>().col(1);
     }
 
     template<typename T >
     static T dot_beta2(const T dt, const T u){
-
         Eigen::Matrix<T,4,1> uu(T(0.0), T(1), T(2)*u ,T(3)*u*u);
         return (T(1)/dt)*uu.transpose()*C<T>().col(2);
     }
 
     template<typename T >
     static T dot_beta3(const T dt, const T u){
-
         Eigen::Matrix<T,4,1> uu(T(0.0), T(1), T(2)*u ,T(3)*u*u);
         return (T(1)/dt)*uu.transpose()*C<T>().col(3);
     }
@@ -145,14 +137,12 @@ public:
 
     template<typename T >
     static T dot_dot_beta2(const T dt, const T u){
-
         Eigen::Matrix<T,4,1> uu(T(0.0), T(0.0), T(2.0) ,T(6)*u);
         return (T(1)/(dt*dt))*uu.transpose()*C<T>().col(2);
     }
 
     template<typename T >
     static T dot_dot_beta3(const T dt, const T u){
-
         Eigen::Matrix<T,4,1> uu(T(0.0), T(0.0), T(2.0) ,T(6)*u);
         return (T(1)/(dt*dt))*uu.transpose()*C<T>().col(3);
     }
@@ -184,16 +174,13 @@ public:
         return 0.5*dot_beta*quatLeftComp(phi_ext)*r(beta,phi);
     }
 
-
     template<typename T>
     static Eigen::Matrix<T, 4, 1> d2r_dt2(T dot_dot_beta, T dot_beta, T beta,
                               const Eigen::Matrix<T, 4, 1> & Q_k_1, const Eigen::Matrix<T, 4, 1> &Q_k){
 
         Eigen::Matrix<T, 4, 1> phi_ext;
         Eigen::Matrix<T, 3, 1> phi = Phi(Q_k_1,Q_k);
-
         phi_ext << phi,0.0;
-
         return 0.5*quatLeftComp<double>(
                 (0.5*dot_beta*dot_beta*phi_ext + dot_dot_beta*unitQuat<double>()))
                *quatLeftComp(phi_ext)*r(beta,phi);
@@ -216,7 +203,6 @@ public:
                                  const Quaternion& Q1,
                                  const Quaternion& Q2,
                                  const Quaternion& Q3);
-
 
     static Quaternion Evaluate_dot_QS(double dt,
                                       double u,
@@ -251,9 +237,9 @@ public:
 
         return M;
     };
-/*
- * Continuous-Time Estimation of attitude using B-splines on Lie groups Equ.35
- */
+    /*
+    * Continuous-Time Estimation of attitude using B-splines on Lie groups Equ.35
+    */
 
     template<typename T>
     static Eigen::Matrix<T,3,1> w_in_body_frame(const Eigen::Matrix<T,4,1> Q_WI,const Eigen::Matrix<T,4,1> dot_Q_WI){
@@ -284,4 +270,4 @@ public:
 
 };
 
-#endif
+#endif // QUATERNIONSPLINEUTILITY_H

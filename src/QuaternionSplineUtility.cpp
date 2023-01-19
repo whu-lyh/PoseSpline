@@ -1,8 +1,5 @@
 #include "PoseSpline/QuaternionSplineUtility.hpp"
 
-
-
-
 std::pair<Jacobian_Quat,Jacobian_Quat> QSUtility::Jcobian_Phi_Quat(Quaternion &q_k_1, Quaternion &q_k){
     Eigen::Matrix3d L,C,J_k_1,J_k;
     Quaternion invQ = quatInv(q_k_1);
