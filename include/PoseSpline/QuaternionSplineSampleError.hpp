@@ -1,12 +1,22 @@
+/*
+ * @Author: whu-lyh yhaoli@whu.edu.cn
+ * @Date: 2023-02-15 14:55:35
+ * @LastEditors: whu-lyh yhaoli@whu.edu.cn
+ * @LastEditTime: 2023-03-04 22:48:21
+ * @FilePath: \PoseSpline\include\PoseSpline\QuaternionSplineSampleError.hpp
+ * @Description: QuaternionSplineSampleError
+ */
 #ifndef QUATERNIONSPLINESAMPLEERROR_H
 #define  QUATERNIONSPLINESAMPLEERROR_H
 
-#include "PoseSpline/QuaternionSpline.hpp"
-#include <ceres/ceres.h>
+// STL
 #include <iostream>
+// ceres
+#include <ceres/ceres.h>
+// Local
+#include "PoseSpline/QuaternionSpline.hpp"
 #include "PoseSpline/QuaternionLocalParameter.hpp"
 #include "PoseSpline/ErrorInterface.hpp"
-
 
 /*
  * QuaternionSplineSampleError

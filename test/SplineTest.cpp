@@ -4,11 +4,11 @@
 // gtest
 #include <gtest/gtest.h>
 // Local
-#include "PoseSpline/QuaternionSpline.hpp"
-#include <PoseSpline/QuaternionSplineUtility.hpp>
-#include <PoseSpline/PoseSpline.hpp>
-#include <PoseSpline/VectorSpaceSpline.hpp>
 #include "csv.h"
+#include "PoseSpline/QuaternionSpline.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/PoseSpline.hpp"
+#include "PoseSpline/VectorSpaceSpline.hpp"
 #include "PoseSpline/Time.hpp"
 
 struct StampedPose{
@@ -24,7 +24,7 @@ struct StampedImu{
     Eigen::Vector3d gyro_; // gyroscope
 };
 
-// class TestSample: pose & imu data import
+// class TestSample: position & imu data import
 class TestSample{
 public:
     // load status e.g. gt pose
@@ -97,15 +97,17 @@ public:
 };
 
 TEST(Spline, poseSplineInitialization){
-    std::string pose_file = "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
-    std::string imu_meas_file = "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
+    // from MH_01_easy/mav0
+    std::string pose_file = "../state_groundtruth_estimate0/data.csv";
+    std::string imu_meas_file = "../imu0/data.csv";
     // load data
     TestSample testSample;
     testSample.readStates(pose_file);
     testSample.readImu(imu_meas_file);
     // initialize a PoseSpline, with 0.1 as the time interval
     PoseSpline poseSpline(0.1);
-    // vector space as spline knot variables
+    // vector as spline knot variables
+    // 3 for position, while 6 for acceleration and gyroscope
     VectorSpaceSpline<3> vectorSpaceSpline(0.1);
     VectorSpaceSpline<6> vectorSpaceSpline6(0.1);
     // predefined data container
@@ -129,7 +131,7 @@ TEST(Spline, poseSplineInitialization){
         queryVelocityMeas.push_back(std::pair<double, Eigen::Vector3d>(Time(stampedPose.timestamp_).toSec(), stampedPose.v_));
         // convert to n second
         //std::cout << Time(stampedPose.timestamp_).toNSec() << std::endl;
-        // get sample points for spline knots?
+        // downsample the input sample measurements for vector space splines
         if(i % 5  == 0){
             samples.push_back(std::pair<double,Pose<double>>(Time(stampedPose.timestamp_).toSec(), pose));
             positionSamples.push_back(std::pair<double, Eigen::Vector3d>(Time(stampedPose.timestamp_).toSec(), stampedPose.t_));
@@ -145,9 +147,10 @@ TEST(Spline, poseSplineInitialization){
     // Test: pose spline evalPoseSpline
     for(auto pair : queryMeas){
         if(poseSpline.isTsEvaluable(pair.first)){
-            // get pose from a branch of poses?
+            // get a interpolated pose by timestamp and spline model
+            // to check if there are artifacts caused by spline fitting
             Pose<double> query = poseSpline.evalPoseSpline(pair.first);
-            // pair.second is gt? 
+            // pair.second is gt
             //std::cout <<"Gt:    "<<pair.second.r().transpose() << " " << pair.second.q().transpose()<<std::endl;
             //std::cout <<"Query: "<<query.r().transpose()<<" "<< query.q().transpose()<< std::endl << std::endl;
             // check translation and rotation
@@ -173,6 +176,7 @@ TEST(Spline, poseSplineInitialization){
             GTEST_ASSERT_LT((pair.second - query).norm(), 0.1);
         }
     }
+    // seems that no accelerator check exist?
     //std::ofstream ofs_debug("/home/pang/debug.txt");
     const Eigen::Vector3d G(0.0, 0.0, 9.81);
     for(uint i = start; i <end; i++){
@@ -186,7 +190,7 @@ TEST(Spline, poseSplineInitialization){
             //ofs_debug << stampedImu.accel_.transpose() << " " << evalAccel.transpose() << std::endl;
         }
     }
-    // 
+    // seems that no gyro check exist?
     for(uint i = start; i < end; i++){
         StampedImu stampedImu = testSample.imu_vec_.at(i);
         auto ts = Time(stampedImu.timestamp_).toSec();
@@ -202,107 +206,6 @@ TEST(Spline, poseSplineInitialization){
 }
 
 TEST(Spline, quaternionSplineInitialization) {
-////
-////    /*
-////     *  Test getOmegaFromTwoQuaternion
-////     *  Passed!
-////     */
-////
-////
-////    for(uint i = 1; i < data.size(); i++){
-////        std::pair<double, Quaternion> q1 = getSample(data,i);
-////        std::pair<double, Quaternion> q0 = getSample(data,i-1);
-////        double dt = q1.first - q0.first;
-////
-////        Eigen::Vector3d omega = getOmegaFromTwoQuaternion(q0.second,q1.second,dt);
-////        //ofs_debug << omega.transpose()<<std::endl;
-////
-////    }
-////
-////    /*
-////     *  Test QSUtility::w_a
-////     *  Passed!
-////     */
-////
-////    for(uint i = 1; i < data.size()-1; i++){
-////        std::pair<double, Quaternion> q1 = getSample(data,i);
-////        std::pair<double, Quaternion> q0 = getSample(data,i-1);
-////        std::pair<double, Quaternion> q2 = getSample(data,i+1);
-////        double dt = q2.first - q0.first;
-////
-////        Quaternion dotQ0 = (q2.second - q0.second)/dt;
-////
-////        Eigen::Vector3d omega = QSUtility::w(q0.second,dotQ0);
-////
-////        //ofs_debug << omega.transpose()<<std::endl;
-////
-////    }
-////
-////
-////    /*
-////     * Test QuaternionSpline evalQuatSplineDerivate
-////     * Passed!
-////     */
-////
-////
-////    for(uint i = 1; i < data.size()-1; i++){
-////
-////        std::pair<double, Quaternion> q1 = getSample(data,i);
-////        if(qspline.isTsEvaluable(q1.first)){
-////            std::pair<double, Quaternion> q0 = getSample(data,i-1);
-////            std::pair<double, Quaternion> q2 = getSample(data,i+1);
-////            double dt20 = q2.first - q0.first;
-////            double dt10 = q1.first - q0.first;
-////            double dt21 = q2.first - q1.first;
-////
-////            // num-diff 1-order
-////            Quaternion num_dotQ1 = (q2.second - q0.second)/dt20;
-////
-////            Quaternion num_dotQ10 = (q1.second - q0.second)/dt10;
-////            Quaternion num_dotQ21 = (q2.second - q1.second)/dt21;
-////
-////            // num-diff 2-order
-////            Quaternion num_dot_dot_Q1 = (num_dotQ21 - num_dotQ10)/(dt20/2.0);
-////
-////
-////            Quaternion Q1, dotQ1, dot_dotQ1;
-////            qspline.evalQuatSplineDerivate(q1.first,Q1.data(),dotQ1.data(),dot_dotQ1.data());
-////
-////
-////            if(qspline.isTsEvaluable(q2.first)){
-////
-////                Quaternion dotQ2 = qspline.evalDotQuatSpline(q2.first);
-////                Quaternion another_num_dot_dot_Q1 = (dotQ2 - dotQ1)/(dt21); // a little delay
-////
-////
-////
-////                ofs_debug << q0.second.transpose()<<" "<<Q1.transpose()<<" ";
-////                ofs_debug << num_dotQ1.transpose()<<" "<<dotQ1.transpose()<<" ";
-////                ofs_debug << num_dot_dot_Q1.transpose()<<" "<<another_num_dot_dot_Q1.transpose()<<" "<<dot_dotQ1.transpose()<<std::endl;
-////
-////
-//////                std::cout << q0.second.transpose()<<" "<<Q1.transpose()<<" ";
-//////                std::cout << num_dotQ1.transpose()<<" "<<dotQ1.transpose()<<" ";
-//////                std::cout << num_dot_dot_Q1.transpose()<<" "<<dot_dotQ1.transpose()<<std::endl;
-////
-////            }
-////
-////
-////
-////
-////            //std::cout << num_dotQ0.transpose()<<" "<<dotQ0.transpose()<<std::endl;
-////
-////        }
-////    }
-////
-////
-////
-////
-////
-////
-//    ofs_debug.close();
-////
-
     std::string pose_file = "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
     std::string imu_meas_file = "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
 

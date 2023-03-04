@@ -40,21 +40,22 @@
 #ifndef INCLUDE_OKVIS_CERES_ERRORINTERFACE_HPP_
 #define INCLUDE_OKVIS_CERES_ERRORINTERFACE_HPP_
 
+// STL
 #include <vector>
+// Eigen
 #include <Eigen/Core>
 
-
 /// @brief Simple interface class the errors implemented here should inherit from.
-class ErrorInterface {
+class ErrorInterface
+{
 public:
-
-
-
     /// @brief Constructor
-    ErrorInterface() {
+    ErrorInterface()
+    {
     }
     /// @brief Destructor (does nothing).
-    virtual ~ErrorInterface() {
+    virtual ~ErrorInterface()
+    {
     }
 
     /// @name Sizes
@@ -87,12 +88,8 @@ public:
      * @return Success of the evaluation.
      */
     virtual bool EvaluateWithMinimalJacobians(
-            double const* const * parameters, double* residuals, double** jacobians,
-            double** jacobiansMinimal) const = 0;
-
-
+        double const *const *parameters, double *residuals, double **jacobians,
+        double **jacobiansMinimal) const = 0;
 };
-
-
 
 #endif /* INCLUDE_OKVIS_CERES_ERRORINTERFACE_HPP_ */

@@ -1,27 +1,27 @@
 /*******************************************************
  * Copyright (C) 2019, Aerial Robotics Group, Hong Kong University of Science and Technology
- * 
+ *
  * This file is part of VINS.
- * 
+ *
  * Licensed under the GNU General Public License v3.0;
  * you may not use this file except in compliance with the License.
  *******************************************************/
 
 #pragma once
-
+// STL
 #include <cmath>
 #include <cassert>
 #include <cstring>
+// ceres
 #include <eigen3/Eigen/Dense>
 
 class Utility
 {
-  public:
+public:
     template <typename Derived>
     static Eigen::Quaternion<typename Derived::Scalar> deltaQ(const Eigen::MatrixBase<Derived> &theta)
     {
         typedef typename Derived::Scalar Scalar_t;
-
         Eigen::Quaternion<Scalar_t> dq;
         Eigen::Matrix<Scalar_t, 3, 1> half_theta = theta;
         half_theta /= static_cast<Scalar_t>(2.0);
@@ -45,10 +45,10 @@ class Utility
     template <typename Derived>
     static Eigen::Quaternion<typename Derived::Scalar> positify(const Eigen::QuaternionBase<Derived> &q)
     {
-        //printf("a: %f %f %f %f", q.w(), q.x(), q.y(), q.z());
-        //Eigen::Quaternion<typename Derived::Scalar> p(-q.w(), -q.x(), -q.y(), -q.z());
-        //printf("b: %f %f %f %f", p.w(), p.x(), p.y(), p.z());
-        //return q.template w() >= (typename Derived::Scalar)(0.0) ? q : Eigen::Quaternion<typename Derived::Scalar>(-q.w(), -q.x(), -q.y(), -q.z());
+        // printf("a: %f %f %f %f", q.w(), q.x(), q.y(), q.z());
+        // Eigen::Quaternion<typename Derived::Scalar> p(-q.w(), -q.x(), -q.y(), -q.z());
+        // printf("b: %f %f %f %f", p.w(), p.x(), p.y(), p.z());
+        // return q.template w() >= (typename Derived::Scalar)(0.0) ? q : Eigen::Quaternion<typename Derived::Scalar>(-q.w(), -q.x(), -q.y(), -q.z());
         return q;
     }
 
@@ -77,7 +77,6 @@ class Utility
         Eigen::Vector3d n = R.col(0);
         Eigen::Vector3d o = R.col(1);
         Eigen::Vector3d a = R.col(2);
-
         Eigen::Vector3d ypr(3);
         double y = atan2(n(1), n(0));
         double p = atan2(-n(2), n(0) * cos(y) + n(1) * sin(y));
@@ -85,7 +84,6 @@ class Utility
         ypr(0) = y;
         ypr(1) = p;
         ypr(2) = r;
-
         return ypr / M_PI * 180.0;
     }
 
@@ -137,13 +135,12 @@ class Utility
     }
 
     template <typename T>
-    static T normalizeAngle(const T& angle_degrees) {
-      T two_pi(2.0 * 180);
-      if (angle_degrees > 0)
-      return angle_degrees -
-          two_pi * std::floor((angle_degrees + T(180)) / two_pi);
-      else
-        return angle_degrees +
-            two_pi * std::floor((-angle_degrees + T(180)) / two_pi);
+    static T normalizeAngle(const T &angle_degrees)
+    {
+        T two_pi(2.0 * 180);
+        if (angle_degrees > 0)
+            return angle_degrees - two_pi * std::floor((angle_degrees + T(180)) / two_pi);
+        else
+            return angle_degrees + two_pi * std::floor((-angle_degrees + T(180)) / two_pi);
     };
 };

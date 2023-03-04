@@ -1,3 +1,11 @@
+/*
+ * @Author: whu-lyh yhaoli@whu.edu.cn
+ * @Date: 2023-02-15 14:55:35
+ * @LastEditors: whu-lyh yhaoli@whu.edu.cn
+ * @LastEditTime: 2023-03-04 15:36:25
+ * @FilePath: \PoseSpline\include\internal\pose_local_parameterization.h
+ * @Description: PoseLocalParameterization for hamilton formulation
+ */
 /*******************************************************
  * Copyright (C) 2019, Aerial Robotics Group, Hong Kong University of Science and Technology
  * 
@@ -9,9 +17,13 @@
 
 #pragma once
 
+// Eigen
 #include <eigen3/Eigen/Dense>
+// ceres
 #include <ceres/ceres.h>
+// Local
 #include "utility.h"
+
 namespace hamilton {
     class PoseLocalParameterization : public ceres::LocalParameterization {
     public:

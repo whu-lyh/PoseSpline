@@ -1,3 +1,12 @@
+/*
+ * @Author: whu-lyh yhaoli@whu.edu.cn
+ * @Date: 2023-02-15 14:55:35
+ * @LastEditors: whu-lyh yhaoli@whu.edu.cn
+ * @LastEditTime: 2023-03-03 16:12:56
+ * @FilePath: \PoseSpline\include\PoseSpline\VectorSpaceSpline.hpp
+ * @Description: vector space spline class, the control point element type locates in vector space
+ */
+
 #ifndef VECTORSPACESPLINE_H
 #define VECTORSPACESPLINE_H
 
@@ -11,7 +20,6 @@
 #include "PoseSpline/VectorSplineSampleError.hpp"
 #include "PoseSpline/VectorSplineSampleAutoError.hpp"
 
-// Class: vector space spline, each knot belonging to vector space
 template <int Dim = 3>
 class VectorSpaceSpline: public BSplineBase<Eigen::Matrix<double, Dim, 1>, 4>{
 public:
@@ -20,7 +28,6 @@ public:
     };
     VectorSpaceSpline(double interval): BSplineBase<Eigen::Matrix<double, Dim, 1>, 4>(interval){
     };
-    // 
     void initialSpline(std::vector<std::pair<double,Eigen::Matrix<double, Dim, 1>>> Meas){
         // Build a least-square problem
         ceres::Problem problem;

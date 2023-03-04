@@ -1,3 +1,11 @@
+/*
+ * @Author: whu-lyh yhaoli@whu.edu.cn
+ * @Date: 2023-02-15 14:55:35
+ * @LastEditors: whu-lyh yhaoli@whu.edu.cn
+ * @LastEditTime: 2023-03-04 10:54:20
+ * @FilePath: \PoseSpline\include\PoseSpline\QuaternionSpline.hpp
+ * @Description: QuaternionSpline class
+ */
 #ifndef QUATERNIONSPLINE_H
 #define QUATERNIONSPLINE_H
 
@@ -5,7 +13,6 @@
 #include "Quaternion.hpp"
 #include "PoseSpline/BSplineBase.hpp"
 
-// Class: QuaternionSpline
 class QuaternionSpline: public BSplineBase<Quaternion, 4>{
 public:
     typedef BSplineBase<Quaternion, 4> base_t;

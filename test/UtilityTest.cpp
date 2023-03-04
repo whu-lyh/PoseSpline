@@ -1,39 +1,36 @@
 
+// STL
 #include <iostream>
+// Ceres
 #include <ceres/ceres.h>
+// gtest
 #include <gtest/gtest.h>
+// Local
 #include <PoseSpline/QuaternionLocalParameter.hpp>
 #include "PoseSpline/QuaternionSpline.hpp"
 #include "PoseSpline/QuaternionSplineUtility.hpp"
 #include "PoseSpline/PoseLocalParameter.hpp"
 
-
 TEST(Geometry, quaternion){
-// test exp and log
+    // test exp and log
     Eigen::Vector3d delta_phi(1.1,1.43,-0.9);
-
     Quaternion Q_exp = quatExp(delta_phi);
     Eigen::Vector3d phi_log = quatLog(Q_exp);
     GTEST_ASSERT_EQ((delta_phi - phi_log).squaredNorm() < 0.0001,true);
-
-//    std::cout<<"S(phi)*L(q): "<<std::endl<<quatS(delta_phi)*quatL(Q_exp)<<std::endl;
-
+    //std::cout<<"S(phi)*L(q): "<<std::endl<<quatS(delta_phi)*quatL(Q_exp)<<std::endl;
+    // type convert: euler to matrix
     RotMat rot  = axisAngleToRotMat(delta_phi);
+    // matrix to quaternion
     Quaternion quatFromRot = rotMatToQuat(rot);
-
-
     GTEST_ASSERT_EQ((quatFromRot - Q_exp).squaredNorm() < 0.0001,true);
-
+    // axis angle to matrix
     RotMat rot_X = rotX(3.1415/2);
     RotMat rotAA = axisAngleToRotMat(Eigen::Vector3d(3.1415/2,0,0));
-
+    // quaternion to Eigen style matrix
     Eigen::Matrix4d Q_R= quatRightComp(Q_exp);
     Eigen::Matrix4d  invQ_R= quatRightComp(quatInv(Q_exp));
-
-//    std::cout<<Q_R*invQ_R<<std::endl;
-    GTEST_ASSERT_LT((Q_R*invQ_R  -
-                     Eigen::Matrix<double,4,4>::Identity()).squaredNorm() , 1e-8);
-
+    //std::cout<<Q_R*invQ_R<<std::endl;
+    GTEST_ASSERT_LT((Q_R*invQ_R - Eigen::Matrix<double,4,4>::Identity()).squaredNorm() , 1e-8);
 
     Quaternion Cp0,Cp1,Cp2,Cp3;
     Cp0 = Cp1 = Cp2 = Cp3 = unitQuat<double>();
@@ -51,46 +48,36 @@ TEST(Geometry, quaternion){
     double b1 = QSUtility::beta1(u);
     Eigen::Vector3d phi1 = QSUtility::Phi(Cp1,Cp2);
     double db1 = QSUtility::dot_beta1(dt,u);
-    Quaternion  r = QSUtility::r(b1,phi1);
-    Quaternion  dot_r = QSUtility::dr_dt(db1,b1,Cp1,Cp2);
+    Quaternion r = QSUtility::r(b1,phi1);
+    Quaternion dot_r = QSUtility::dr_dt(db1,b1,Cp1,Cp2);
     dot_r = quatNorm(dot_r);
 
     double eps = 1e-5;
     double u_p_eps = u + eps/dt;
     double u_m_eps = u - eps/dt;
-
     // plus
     double b1_p = QSUtility::beta1(u_p_eps);
     double db1_p = QSUtility::dot_beta1(dt,u_p_eps);
-    Quaternion  r_p = QSUtility::r(b1_p,phi1);
-
+    Quaternion r_p = QSUtility::r(b1_p,phi1);
+    // minus
     double b1_m = QSUtility::beta1(u_m_eps);
     double db1_m = QSUtility::dot_beta1(dt,u_m_eps);
-    Quaternion  r_m = QSUtility::r(b1_m,phi1);
+    Quaternion r_m = QSUtility::r(b1_m,phi1);
 
     Quaternion numdiff_r = (r_p - r_m)/(2.0*eps);
     numdiff_r = quatNorm(numdiff_r);
-
     GTEST_ASSERT_LT((dot_r - numdiff_r).norm(), 1e-5);
-
     std::cout << "dot_r: " << dot_r.transpose() << " " << dot_r.norm() << std::endl;
     std::cout << "numdiff_r: " << numdiff_r.transpose() << " " << numdiff_r.norm() << std::endl;
-
-
     /*
      * test d2r_dt2
      */
-
     double ddb1 = QSUtility::dot_dot_beta1(dt,u);
-    Quaternion  dot_dot_r = QSUtility::d2r_dt2(ddb1,db1,b1,Cp2,Cp3);
-
-    Quaternion  dot_r_p = QSUtility::dr_dt(db1_p,b1_p,Cp2,Cp3);
-    Quaternion  dot_r_m = QSUtility::dr_dt(db1_m,b1_m,Cp2,Cp3);
-
+    Quaternion dot_dot_r = QSUtility::d2r_dt2(ddb1,db1,b1,Cp2,Cp3);
+    Quaternion dot_r_p = QSUtility::dr_dt(db1_p,b1_p,Cp2,Cp3);
+    Quaternion dot_r_m = QSUtility::dr_dt(db1_m,b1_m,Cp2,Cp3);
     Quaternion numDiff_drdt = (dot_r_p - dot_r_m)/(2.0*eps);
-
     GTEST_ASSERT_LT((dot_dot_r - numDiff_drdt).norm(), 1e-5);
-
 }
 
 TEST(Geometry, Hamilton_VS_JPL) {
@@ -100,11 +87,10 @@ TEST(Geometry, Hamilton_VS_JPL) {
         Eigen::Matrix3d rot = aa.toRotationMatrix();
         Eigen::Quaterniond hamiltonQuat(rot);
         Quaternion JPLQuat = rotMatToQuat(rot);
-//    std::cout << hamiltonQuat.coeffs().transpose() << std::endl;
-//    std::cout << JPLQuat.transpose() << std::endl;
+        //std::cout << hamiltonQuat.coeffs().transpose() << std::endl;
+        //std::cout << JPLQuat.transpose() << std::endl;
         GTEST_ASSERT_LT((hamiltonQuat.inverse().coeffs() - JPLQuat).norm(), 1e6);
     }
-
 }
 
 TEST(Geometry, QuaternionUtility) {
@@ -114,21 +100,15 @@ TEST(Geometry, QuaternionUtility) {
     std::cout << r_03.transpose() << std::endl;
 }
 
-
 TEST(Geometry, QuaternionJacobian) {
     for (int i = 0; i < 100; i++) {
         QuaternionTemplate<double> q;
         q.setRandom();
         Eigen::Matrix<double,4,3,Eigen::RowMajor> plusJacobian;
         Eigen::Matrix<double,3,4,Eigen::RowMajor> liftJacobian;
-
+        // liftJacobian is the inverse of plusJacobian?
         QuaternionLocalParameter::plusJacobian(q.data(), plusJacobian.data());
         QuaternionLocalParameter::liftJacobian(q.data(), liftJacobian.data());
-
         GTEST_ASSERT_LT((liftJacobian*plusJacobian - Eigen::Matrix3d::Identity()).norm(), 1e6);
     }
-
-
-
-
 }
