@@ -7,12 +7,10 @@
 #include "PoseSpline/QuaternionSplineSampleError.hpp"
 #include "PoseSpline/QuaternionSplineSampleAutoError.hpp"
 
-QuaternionSpline::QuaternionSpline()
-    : BSplineBase(1.0)
+QuaternionSpline::QuaternionSpline() : BSplineBase(1.0)
 {
 }
-QuaternionSpline::QuaternionSpline(double interval)
-    : BSplineBase(interval)
+QuaternionSpline::QuaternionSpline(double interval) : BSplineBase(interval)
 {
 }
 QuaternionSpline::~QuaternionSpline()
@@ -20,14 +18,13 @@ QuaternionSpline::~QuaternionSpline()
 }
 void QuaternionSpline::initialQuaternionSpline(std::vector<std::pair<double, Quaternion>> Meas)
 {
+    std::cout << "Meas NUM: " << Meas.size() << std::endl;
     // Build a least-square problem
     ceres::Problem problem;
     QuaternionLocalParameter *quaternionLocalParam = new QuaternionLocalParameter;
-    // std::cout<<"Meas NUM: "<<Meas.size()<<std::endl;
     for (auto i : Meas)
     {
-        // std::cout<<"-----------------------------------"<<std::endl;
-        //  add sample
+        // add sample
         addElemenTypeSample(i.first, i.second);
         // Returns the normalized u value and the lower-bound time index.
         std::pair<double, unsigned int> ui = computeUAndTIndex(i.first);
@@ -50,7 +47,7 @@ void QuaternionSpline::initialQuaternionSpline(std::vector<std::pair<double, Qua
         double *cp1 = getControlPoint(bidx + 1);
         double *cp2 = getControlPoint(bidx + 2);
         double *cp3 = getControlPoint(bidx + 3);
-
+        //
         QuaternionMap CpMap0(cp0);
         QuaternionMap CpMap1(cp1);
         QuaternionMap CpMap2(cp2);
@@ -61,20 +58,16 @@ void QuaternionSpline::initialQuaternionSpline(std::vector<std::pair<double, Qua
         ceres::CostFunction *quatSampleFunctor = new ceres::AutoDiffCostFunction<QuaternionSplineSampleAutoError, 3, 4, 4, 4, 4>(
             new QuaternionSplineSampleAutoError(u, i.second));
 #endif
-
+        // parameter
         problem.AddParameterBlock(cp0, 4, quaternionLocalParam);
         problem.AddParameterBlock(cp1, 4, quaternionLocalParam);
         problem.AddParameterBlock(cp2, 4, quaternionLocalParam);
         problem.AddParameterBlock(cp3, 4, quaternionLocalParam);
-
+        // residual
         problem.AddResidualBlock(quatSampleFunctor, NULL, cp0, cp1, cp2, cp3);
     }
-    // std::cout<<"ParameterNum: "<<problem.NumParameterBlocks()<<std::endl;
-    // std::cout<<"ResidualNUM: "<<problem.NumResiduals()<<std::endl;
-
-    // Set up the only cost function (also known as residual).
-    // ceres::CostFunction* cost_function = new QuadraticCostFunction;
-    // problem.AddResidualBlock(cost_function, NULL, &x);
+    std::cout << "ParameterNum: " << problem.NumParameterBlocks() << std::endl;
+    std::cout << "ResidualNUM: " << problem.NumResiduals() << std::endl;
     // Run the solver!
     ceres::Solver::Options options;
     options.minimizer_progress_to_stdout = true;
@@ -87,13 +80,14 @@ void QuaternionSpline::initialQuaternionSpline(std::vector<std::pair<double, Qua
     std::cout << summary.FullReport() << std::endl;
 }
 
-// void QuaternionSpline::printKnots(){
-//     std::cout<<"knot: "<<std::endl;
-//     for(auto i: knots_){
-//         std::cout<<Time(i)<<std::endl;
-//
-//     }
-// }
+void QuaternionSpline::printKnots()
+{
+    std::cout << "knot: " << std::endl;
+    for (auto i : knots_)
+    {
+        std::cout << Time(i) << std::endl;
+    }
+}
 
 Quaternion QuaternionSpline::evalQuatSpline(real_t t)
 {

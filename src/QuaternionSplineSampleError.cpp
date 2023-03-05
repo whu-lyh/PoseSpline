@@ -2,10 +2,8 @@
 #include "PoseSpline/QuaternionSplineSampleError.hpp"
 #include "PoseSpline/QuaternionSplineUtility.hpp"
 
-QuaternionSplineSampleError::QuaternionSplineSampleError(double t_meas,
-                                                         Quaternion Q_meas) : t_meas_(t_meas), Q_Meas_(Q_meas){
-
-                                                                                               };
+QuaternionSplineSampleError::QuaternionSplineSampleError(double t_meas, Quaternion Q_meas)
+    : t_meas_(t_meas), Q_Meas_(Q_meas){};
 
 QuaternionSplineSampleError::~QuaternionSplineSampleError()
 {
@@ -23,41 +21,37 @@ bool QuaternionSplineSampleError::EvaluateWithMinimalJacobians(double const *con
                                                                double **jacobians,
                                                                double **jacobiansMinimal) const
 {
+    // parameter convert
     Eigen::Map<const Quaternion> Q0(parameters[0]);
     Eigen::Map<const Quaternion> Q1(parameters[1]);
     Eigen::Map<const Quaternion> Q2(parameters[2]);
     Eigen::Map<const Quaternion> Q3(parameters[3]);
-
-    Eigen::Map<Eigen::Vector3d> error(residuals);
-
+    //
     double Beta1 = QSUtility::beta1(t_meas_);
     double Beta2 = QSUtility::beta2(t_meas_);
     double Beta3 = QSUtility::beta3(t_meas_);
-
+    //
     Eigen::Vector3d phi1 = QSUtility::Phi<double>(Q0, Q1);
     Eigen::Vector3d phi2 = QSUtility::Phi<double>(Q1, Q2);
     Eigen::Vector3d phi3 = QSUtility::Phi<double>(Q2, Q3);
-
+    //
     Quaternion r_1 = QSUtility::r(Beta1, phi1);
     Quaternion r_2 = QSUtility::r(Beta2, phi2);
     Quaternion r_3 = QSUtility::r(Beta3, phi3);
-
     // define residual
+    Eigen::Map<Eigen::Vector3d> error(residuals);
     // For simplity, we define error  =  /hat - meas.
     // delte_Q = Q_hat*inv(Q_meas) = (inv(Q_meas))oplus Q_hat
     Quaternion Q_hat = quatLeftComp<double>(Q0) * quatLeftComp(r_1) * quatLeftComp(r_2) * r_3;
     Quaternion dQ = quatLeftComp(Q_hat) * quatInv(Q_Meas_);
+    //
     error = 2.0 * dQ.head<3>();
-
     if (jacobians != NULL)
     {
-
         Eigen::Matrix<double, 3, 4> J_1st;
         J_1st.setZero();
         J_1st = 2.0 * quatRightComp(quatInv(Q_Meas_)).topLeftCorner(3, 4);
-
         // std::cout<<"J_1st: "<<J_1st<<std::endl;
-
         Eigen::Matrix<double, 4, 3> Vee = QSUtility::V<double>();
 
         Eigen::Vector3d BetaPhi1 = Beta1 * phi1;
@@ -94,28 +88,19 @@ bool QuaternionSplineSampleError::EvaluateWithMinimalJacobians(double const *con
             Eigen::Matrix<double, 3, 3, Eigen::RowMajor> J0_minimal;
             //
             Eigen::Matrix<double, 4, 3> J_spline0;
-
             J_spline0 = temp0 - temp01;
-
             // std::cout<<"part1: "<<std::endl<<part1<<std::endl;
             // std::cout<<"temp01: "<<std::endl<<temp01<<std::endl;
-
             J0_minimal = J_1st * J_spline0;
-
             // std::cout<<"J_spline0: "<<std::endl<<J_spline0<<std::endl;
-
             Eigen::Matrix<double, 3, 4, Eigen::RowMajor> J_lift;
             QuaternionLocalParameter::liftJacobian(Q0.data(), J_lift.data());
             J0 = J0_minimal * J_lift;
-
             // std::cout<<"J0: "<<std::endl<<J0<<std::endl;
-
             if (jacobiansMinimal != NULL && jacobiansMinimal[0] != NULL)
             {
-
                 Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>> J0_minimal_map(jacobiansMinimal[0]);
                 J0_minimal_map = J0_minimal;
-
                 // std::cout<<"J0_minimal_map: "<<std::endl<<J0_minimal_map<<std::endl;
             }
         }
@@ -123,22 +108,14 @@ bool QuaternionSplineSampleError::EvaluateWithMinimalJacobians(double const *con
         {
             Eigen::Map<Eigen::Matrix<double, 3, 4, Eigen::RowMajor>> J1(jacobians[1]);
             Eigen::Matrix<double, 3, 3, Eigen::RowMajor> J1_minimal;
-
             Eigen::Matrix<double, 4, 3> J_spline1;
-
             J_spline1 = temp01 - temp12;
             J1_minimal = J_1st * J_spline1;
-
             Eigen::Matrix<double, 3, 4, Eigen::RowMajor> J_lift;
             QuaternionLocalParameter::liftJacobian(Q1.data(), J_lift.data());
-
             J1 = J1_minimal * J_lift;
-
-            // std::cout<<"J1: "<<std::endl<<J1<<std::endl;
-
             if (jacobiansMinimal != NULL && jacobiansMinimal[1] != NULL)
             {
-
                 Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>> J1_minimal_map(jacobiansMinimal[1]);
                 J1_minimal_map = J1_minimal;
             }
@@ -147,52 +124,35 @@ bool QuaternionSplineSampleError::EvaluateWithMinimalJacobians(double const *con
         {
             Eigen::Map<Eigen::Matrix<double, 3, 4, Eigen::RowMajor>> J2(jacobians[2]);
             Eigen::Matrix<double, 3, 3, Eigen::RowMajor> J2_minimal;
-            //
             Eigen::Matrix<double, 4, 3> J_spline2;
-
             J_spline2 = temp12 - temp23;
             J2_minimal = J_1st * J_spline2;
-
             Eigen::Matrix<double, 3, 4, Eigen::RowMajor> J_lift;
             QuaternionLocalParameter::liftJacobian(Q2.data(), J_lift.data());
-
             J2 = J2_minimal * J_lift;
-
-            // std::cout<<"J2: "<<std::endl<<J2<<std::endl;
-
             if (jacobiansMinimal != NULL && jacobiansMinimal[2] != NULL)
             {
-
                 Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>> J2_minimal_map(jacobiansMinimal[2]);
                 J2_minimal_map = J2_minimal;
             }
         }
         if (jacobians[3] != NULL)
         {
-
             Eigen::Map<Eigen::Matrix<double, 3, 4, Eigen::RowMajor>> J3(jacobians[3]);
             Eigen::Matrix<double, 3, 3, Eigen::RowMajor> J3_minimal;
-            //
             Eigen::Matrix<double, 4, 3> J_spline3;
-
             J_spline3 = temp23;
             J3_minimal = J_1st * J_spline3;
             Eigen::Matrix<double, 3, 4, Eigen::RowMajor> J_lift;
             QuaternionLocalParameter::liftJacobian(Q3.data(), J_lift.data());
-
             J3 = J3_minimal * J_lift;
-
-            // std::cout<<"J3: "<<std::endl<<J3<<std::endl;
-
             if (jacobiansMinimal != NULL && jacobiansMinimal[3] != NULL)
             {
-
                 Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>> J3_minimal_map(jacobiansMinimal[3]);
                 J3_minimal_map = J3_minimal;
             }
         }
     }
-
     return true;
 }
 
@@ -203,7 +163,6 @@ bool QuaternionSplineSampleError::EvaluateWithMinimalJacobians(double const *con
  */
 bool QuaternionSplineSampleError::VerifyJacobianNumDiff(double const *const *parameters)
 {
-
     Eigen::Map<const Quaternion> Q0(parameters[0]);
     Eigen::Map<const Quaternion> Q1(parameters[1]);
     Eigen::Map<const Quaternion> Q2(parameters[2]);
@@ -219,7 +178,6 @@ bool QuaternionSplineSampleError::VerifyJacobianNumDiff(double const *const *par
                                  AnaliJacobian1.data(),
                                  AnaliJacobian2.data(),
                                  AnaliJacobian3.data()};
-
     // Get analitial jacobian.
     Eigen::Vector3d Residual;
     EvaluateWithMinimalJacobians(parameters, Residual.data(), AnaliJacobians, AnaliJacobians_minimal);
@@ -227,6 +185,5 @@ bool QuaternionSplineSampleError::VerifyJacobianNumDiff(double const *const *par
     std::cout << "AnaliJacobian_minimal1: " << AnaliJacobian_minimal1 << std::endl;
     std::cout << "AnaliJacobian_minimal2: " << AnaliJacobian_minimal2 << std::endl;
     std::cout << "AnaliJacobian_minimal3: " << AnaliJacobian_minimal3 << std::endl;
-
     return 0;
 }

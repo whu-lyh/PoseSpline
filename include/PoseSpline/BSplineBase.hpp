@@ -2,7 +2,7 @@
  * @Author: whu-lyh yhaoli@whu.edu.cn
  * @Date: 2023-02-15 14:55:35
  * @LastEditors: whu-lyh yhaoli@whu.edu.cn
- * @LastEditTime: 2023-03-03 16:29:29
+ * @LastEditTime: 2023-03-05 12:33:53
  * @FilePath: \PoseSpline\include\PoseSpline\BSplineBase.hpp
  * @Description: BSplineBase class
  */
@@ -100,6 +100,7 @@ public:
         return std::make_pair(*i - *(i - 1), (i - knots_.begin()) - 1);
     }
     // @return to make the pair own some unique characteristic?, u is normalized
+    // t is normalized between in t_{t+1}-t_{i}, $u \in [0,1)$
     std::pair<real_t, int> computeUAndTIndex(real_t t) const
     {
         std::pair<real_t, int> ui = computeTIndex(t);

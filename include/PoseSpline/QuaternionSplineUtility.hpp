@@ -2,7 +2,7 @@
  * @Author: whu-lyh yhaoli@whu.edu.cn
  * @Date: 2023-02-15 14:55:35
  * @LastEditors: whu-lyh yhaoli@whu.edu.cn
- * @LastEditTime: 2023-03-04 20:57:38
+ * @LastEditTime: 2023-03-05 15:53:18
  * @FilePath: \PoseSpline\include\PoseSpline\QuaternionSplineUtility.hpp
  * @Description: QSUtility class from paper Continuous-Time Estimation of attitude using B-splines on Lie groups
  */
@@ -58,7 +58,8 @@ public:
     {
         return T(u * u * u / T(6.0));
     }
-    // An alternative form
+    // An alternative form of the cubic basis func which should be transposed first
+    // cubic Basis func in matrix form = M^T * [u^0,u^1,u^2,u^3]^T
     template <typename T>
     static Eigen::Matrix<T, 4, 4> M()
     {
@@ -68,7 +69,7 @@ public:
                                 -1, 3, -3, 1).finished());
     }
     /*
-     * bspline basis Cumulative functions
+     * bspline basis Cumulative functions just as math formulations
      */
     // todo: need move to base class
     template <typename T>

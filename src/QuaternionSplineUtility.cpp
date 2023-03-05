@@ -1,3 +1,5 @@
+
+// Local
 #include "PoseSpline/QuaternionSplineUtility.hpp"
 
 std::pair<Jacobian_Quat, Jacobian_Quat> QSUtility::Jcobian_Phi_Quat(Quaternion &q_k_1, Quaternion &q_k)
@@ -21,7 +23,6 @@ Quaternion QSUtility::EvaluateQS(double u,
                                  const Quaternion &Q2,
                                  const Quaternion &Q3)
 {
-
     Eigen::Vector3d Phi1 = Phi(Q0, Q1);
     Eigen::Vector3d Phi2 = Phi(Q1, Q2);
     Eigen::Vector3d Phi3 = Phi(Q2, Q3);
@@ -40,7 +41,6 @@ Quaternion QSUtility::Evaluate_dot_QS(double dt,
                                       const Quaternion &Q2,
                                       const Quaternion &Q3)
 {
-
     Eigen::Vector3d Phi1 = Phi(Q0, Q1);
     Eigen::Vector3d Phi2 = Phi(Q1, Q2);
     Eigen::Vector3d Phi3 = Phi(Q2, Q3);
